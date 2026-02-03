@@ -24,8 +24,11 @@ import (
 	"golang.org/x/exp/maps"
 )
 
+// allowSignatures are comment tags that can be used to ignore findings.
+// betterleaks:allow is checked first (preferred), followed by gitleaks:allow for backwards compatibility.
+var allowSignatures = []string{"betterleaks:allow", "gitleaks:allow"}
+
 const (
-	gitleaksAllowSignature = "gitleaks:allow"
 	// SlowWarningThreshold is the amount of time to wait before logging that a file is slow.
 	// This is useful for identifying problematic files and tuning the allowlist.
 	SlowWarningThreshold = 5 * time.Second
@@ -34,6 +37,16 @@ const (
 var (
 	newLineRegexp = regexp.MustCompile("\n")
 )
+
+// containsAllowSignature checks if the line contains any of the allow signatures
+func containsAllowSignature(line string) bool {
+	for _, sig := range allowSignatures {
+		if strings.Contains(line, sig) {
+			return true
+		}
+	}
+	return false
+}
 
 // Detector is the main detector struct
 type Detector struct {
@@ -507,10 +520,10 @@ func (d *Detector) detectRule(fragment Fragment, currentRaw string, r config.Rul
 			finding.Link = createScmLink(fragment.CommitInfo.Remote, finding)
 			finding.Message = fragment.CommitInfo.Message
 		}
-		if !d.IgnoreGitleaksAllow && strings.Contains(finding.Line, gitleaksAllowSignature) {
+		if !d.IgnoreGitleaksAllow && containsAllowSignature(finding.Line) {
 			logger.Trace().
 				Str("finding", finding.Secret).
-				Msg("skipping finding: 'gitleaks:allow' signature")
+				Msg("skipping finding: allow signature found")
 			continue
 		}
 
