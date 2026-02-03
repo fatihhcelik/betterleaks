@@ -1,8 +1,8 @@
-project_name: gitleaks
+project_name: betterleaks
 
 builds:
   - main: main.go
-    binary: gitleaks
+    binary: betterleaks
     goos:
       - darwin
       - linux
@@ -20,7 +20,7 @@ builds:
     ldflags:
       - -s -w -X=github.com/betterleaks/betterleaks/version.Version={{.Version}}
 archives:
-  - builds: [gitleaks]
+  - builds: [betterleaks]
     format_overrides:
       - goos: windows
         format: zip
